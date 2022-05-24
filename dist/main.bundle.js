@@ -10,13 +10,23 @@
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
+/***/ "./src/Player.ts":
+/*!***********************!*\
+  !*** ./src/Player.ts ***!
+  \***********************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"default\": () => (__WEBPACK_DEFAULT_EXPORT__)\n/* harmony export */ });\nvar Player = /** @class */ (function () {\r\n    //public canvas = document.querySelector('canvas')\r\n    // public c = this.canvas.getContext('2d')\r\n    function Player() {\r\n        this.playerImg = '../imgs/player.png';\r\n        Player.position = {\r\n            x: 152,\r\n            y: 70\r\n        };\r\n        this.drawPlayerOnStart();\r\n    }\r\n    Player.prototype.drawPlayerOnStart = function () {\r\n        var image = new Image();\r\n        image.src = this.playerImg;\r\n        image.onload = function () {\r\n            var canvas = document.querySelector('canvas');\r\n            var c = canvas.getContext('2d');\r\n            c.drawImage(image, 0, 22, // Start at 70/20 pixels from the left and the top of the image (crop),\r\n            16, 10, // \"Get\" a `50 * 50` (w * h) area from the source image (crop),\r\n            Player.position.x, Player.position.y, // Place the result at 0, 0 in the canvas,\r\n            16, 10); // With as width / height: 100 * 100 (scale)\r\n        };\r\n    };\r\n    return Player;\r\n}());\r\n/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Player);\r\n\n\n//# sourceURL=webpack://JumpMan/./src/Player.ts?");
+
+/***/ }),
+
 /***/ "./src/Playfield.ts":
 /*!**************************!*\
   !*** ./src/Playfield.ts ***!
   \**************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"default\": () => (__WEBPACK_DEFAULT_EXPORT__)\n/* harmony export */ });\nvar Playfield = /** @class */ (function () {\r\n    function Playfield() {\r\n    }\r\n    Playfield.createNewPlayfield = function () {\r\n        var canvas = document.querySelector('canvas');\r\n        var c = canvas.getContext('2d');\r\n        canvas.width = 610;\r\n        canvas.height = 348;\r\n        var image = new Image();\r\n        image.src = Playfield.levelsImg;\r\n        image.onload = function () {\r\n            c.drawImage(image, 968, 192, // Start at 70/20 pixels from the left and the top of the image (crop),\r\n            305, 174, // \"Get\" a `50 * 50` (w * h) area from the source image (crop),\r\n            0, 0, // Place the result at 0, 0 in the canvas,\r\n            610, 348); // With as width / height: 100 * 100 (scale)\r\n        };\r\n    };\r\n    Playfield.levelsImg = '../imgs/levels.png';\r\n    return Playfield;\r\n}());\r\n/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Playfield);\r\n\n\n//# sourceURL=webpack://JumpMan/./src/Playfield.ts?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"default\": () => (__WEBPACK_DEFAULT_EXPORT__)\n/* harmony export */ });\nvar Playfield = /** @class */ (function () {\r\n    function Playfield() {\r\n    }\r\n    Playfield.createNewPlayfield = function () {\r\n        var canvas = document.querySelector('canvas');\r\n        var c = canvas.getContext('2d');\r\n        canvas.width = 320;\r\n        // canvas.height = 174;\r\n        canvas.height = 200;\r\n        var plansza = new Image();\r\n        plansza.src = Playfield.levelsImg;\r\n        plansza.onload = function () {\r\n            c.drawImage(plansza, 960, 184, // Start at 70/20 pixels from the left and the top of the image (crop),\r\n            320, 184, // \"Get\" a `50 * 50` (w * h) area from the source image (crop),\r\n            0, 0, // Place the result at 0, 0 in the canvas,\r\n            320, 184); // With as width / height: 100 * 100 (scale)\r\n        };\r\n        var scorebar = new Image();\r\n        scorebar.src = Playfield.scoreBar;\r\n        scorebar.onload = function () {\r\n            c.drawImage(scorebar, 0, 0, // Start at 70/20 pixels from the left and the top of the image (crop),\r\n            320, 16, // \"Get\" a `50 * 50` (w * h) area from the source image (crop),\r\n            0, 184, // Place the result at 0, 0 in the canvas,\r\n            320, 16); // With as width / height: 100 * 100 (scale)\r\n        };\r\n    };\r\n    Playfield.levelsImg = '../imgs/levels.png';\r\n    Playfield.scoreBar = '../imgs/scoreBar.png';\r\n    return Playfield;\r\n}());\r\n/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Playfield);\r\n\n\n//# sourceURL=webpack://JumpMan/./src/Playfield.ts?");
 
 /***/ }),
 
@@ -26,7 +36,7 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
   \**********************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _Playfield__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Playfield */ \"./src/Playfield.ts\");\n\r\n_Playfield__WEBPACK_IMPORTED_MODULE_0__[\"default\"].createNewPlayfield();\r\n\n\n//# sourceURL=webpack://JumpMan/./src/index.ts?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _Player__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Player */ \"./src/Player.ts\");\n/* harmony import */ var _Playfield__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Playfield */ \"./src/Playfield.ts\");\n\r\n\r\n_Playfield__WEBPACK_IMPORTED_MODULE_1__[\"default\"].createNewPlayfield();\r\nvar player = new _Player__WEBPACK_IMPORTED_MODULE_0__[\"default\"]();\r\n\n\n//# sourceURL=webpack://JumpMan/./src/index.ts?");
 
 /***/ })
 
