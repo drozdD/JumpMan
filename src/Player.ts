@@ -1,28 +1,405 @@
+import Playfield from "./Playfield";
+import laddersInfo from "../data/laddersInfo";
+import platformsInfo from "../data/platformsInfo";
+
 export default class Player {
     public playerImg: string = '../imgs/player.png';
-    public static position: { x: number, y: number }
+    public static info: { x: number, y: number, speed: number, frame: number, moving: Boolean, currentLadder: number, currentPlatform: number, jump: { jumping: boolean, xStart: number, yStart: number, direction: string, jumpStatus: string } }
+    public static settings: { fpsInterval: number, startTime: number, now: number, then: number, elapsed: number };
+    public playfield = new Playfield();
+    public static playerSheet = new Image()
+    public static ctx: any;
+    public static keys: Array<Boolean> = [];
+    public static frames = [
+        {
+            //na wprost
+            x: 0,
+            y: 22
+        },
+        {
+            //lewo
+            x: 18,
+            y: 33
+        },
+        {
+            //lewo 2
+            x: 0,
+            y: 33
+        },
+        {
+            //prawo
+            x: 54,
+            y: 33
+        },
+        {
+            //prawo 2
+            x: 36,
+            y: 33
+        },
+        {
+            //ręce do góry
+            x: 18,
+            y: 44
+        },
+        {
+            //drabina 1
+            x: 0,
+            y: 44
+        },
+        {
+            //drabina 2
+            x: 36,
+            y: 55
+        },
+        { //skok w lewo
+            x: 0,
+            y: 44
+        },
+        { //skok w prawo
+            x: 36,
+            y: 44
+        }
+    ]
     //public canvas = document.querySelector('canvas')
     // public c = this.canvas.getContext('2d')
     constructor() {
-        Player.position = {
+        Player.info = {
             x: 152,
-            y: 70
+            y: 70,
+            speed: 4,
+            frame: 0,
+            moving: false,
+            currentLadder: -1,
+            currentPlatform: -1,
+            jump: {
+                jumping: false,
+                xStart: 0,
+                yStart: 0,
+                direction: "none",
+                jumpStatus: "none"
+            }
         }
+        var canvas = document.querySelector('canvas')
+        Player.ctx = canvas.getContext('2d')
+        Player.playerSheet.src = this.playerImg;
+        this.playfield.createNewPlayfield();
         this.drawPlayerOnStart();
     }
 
     drawPlayerOnStart() {
-        const image = new Image()
-        image.src = this.playerImg;
+        var xCut: number, yCut: number;
+        let i = 0;
+        // var canvas = document.querySelector('canvas')
+        // var c = canvas.getContext('2d')
+        // var image = new Image()
+        // image.src = this.playerImg;
+        var animatePlayerOnStart = window.setInterval(function () {
+            switch (i) {
+                case 0:
+                    xCut = 0;
+                    yCut = 0;
+                    break;
+                case 1:
+                    xCut = 18;
+                    yCut = 0;
+                    break;
+                case 2:
+                    xCut = 36;
+                    yCut = 0;
+                    break;
+                case 3:
+                    xCut = 54;
+                    yCut = 0;
+                    break;
+                case 4:
+                    xCut = 72;
+                    yCut = 0;
+                    break;
+                case 5:
+                    xCut = 0;
+                    yCut = 11;
+                    break;
+                case 6:
+                    xCut = 18;
+                    yCut = 11;
+                    break;
+                case 7:
+                    xCut = 36;
+                    yCut = 11;
+                    break;
+                case 8:
+                    xCut = 54;
+                    yCut = 11;
+                    break;
+                case 9:
+                    xCut = 0;
+                    yCut = 22;
+                    break;
+            }
 
-        image.onload = function () {
-            let canvas = document.querySelector('canvas')
-            let c = canvas.getContext('2d')
-            c.drawImage(image,
-                0, 22,   // Start at 70/20 pixels from the left and the top of the image (crop),
+            Player.ctx.drawImage(Player.playerSheet,
+                xCut, yCut,   // Start at 70/20 pixels from the left and the top of the image (crop),
                 16, 10,   // "Get" a `50 * 50` (w * h) area from the source image (crop),
-                Player.position.x, Player.position.y,     // Place the result at 0, 0 in the canvas,
+                Player.info.x, Player.info.y,     // Place the result at 0, 0 in the canvas,
                 16, 10); // With as width / height: 100 * 100 (scale)
+
+
+            if (i >= 9) {
+                clearInterval(animatePlayerOnStart);
+                Player.addKeyboardsEvents();
+                Player.startAnimating(13)
+            }
+            i++
+        }, 70)
+    }
+
+    static addKeyboardsEvents() {
+        var left: any;
+
+        window.addEventListener("keydown", function (e) {
+            Player.keys[e.keyCode] = true;
+        });
+        window.addEventListener("keyup", function (e) {
+            Player.info.moving = false;
+            delete Player.keys[e.keyCode];
+        });
+    }
+
+    static movePlayer() {
+        //góra
+        if (Player.keys[38] && Player.info.y > 2 && Player.checkIfCanGoVertically("move") && Player.info.jump.jumping == false) {
+            if (Player.info.y - Player.info.speed - laddersInfo[Player.info.currentLadder].y < laddersInfo[Player.info.currentLadder].height && Player.info.y - Player.info.speed - laddersInfo[Player.info.currentLadder].y >= -6) {
+                Player.info.y -= Player.info.speed / 2;
+                if (Player.info.x != laddersInfo[Player.info.currentLadder].x) {
+                    Player.info.x = laddersInfo[Player.info.currentLadder].x
+                }
+
+                if (Player.info.frame != 6 && Player.info.frame != 7) Player.info.frame = 6;
+                else if (Player.info.frame == 6) Player.info.frame = 7;
+                else if (Player.info.frame == 7) Player.info.frame = 6;
+                Player.info.moving = true
+            }
         }
+        //lewo
+        if (Player.keys[32] && Player.keys[37]) {
+            Player.info.jump.jumping = true;
+            Player.info.moving = true;
+            Player.info.jump.xStart = Player.info.x
+            Player.info.jump.yStart = Player.info.y
+            Player.info.jump.direction = "left"
+            Player.info.jump.jumpStatus = "up"
+        }
+        else if (Player.keys[37] && Player.info.x > 0 && Player.checkIfCanGoHorizontally() && Player.info.jump.jumping == false) {
+            if (Player.info.x - Player.info.speed >= platformsInfo[Player.info.currentPlatform].x - 8) {
+                Player.info.x -= Player.info.speed;
+                if (platformsInfo[Player.info.currentPlatform].y - Player.info.y < 10) {
+                    Player.info.y -= Player.info.speed / 2
+                }
+                if (Player.info.frame != 1 && Player.info.frame != 2) Player.info.frame = 1;
+                else if (Player.info.frame == 1) Player.info.frame = 2;
+                else if (Player.info.frame == 2) Player.info.frame = 1;
+                Player.info.moving = true
+            }
+        }
+        //prawo skok
+        if (Player.keys[32] && Player.keys[39]) {
+            Player.info.jump.jumping = true;
+            Player.info.moving = true;
+            Player.info.jump.xStart = Player.info.x
+            Player.info.jump.yStart = Player.info.y
+            Player.info.jump.direction = "right"
+            Player.info.jump.jumpStatus = "up"
+        }
+        //prawo
+        else if (Player.keys[39] && Player.info.x < 320 - 16 && Player.checkIfCanGoHorizontally() && Player.info.jump.jumping == false) {
+            if (Player.info.x + Player.info.speed <= platformsInfo[Player.info.currentPlatform].x + platformsInfo[Player.info.currentPlatform].width - 8) {
+                Player.info.x += Player.info.speed;
+                if (platformsInfo[Player.info.currentPlatform].y - Player.info.y < 10) {
+                    Player.info.y -= Player.info.speed / 2
+                }
+                if (Player.info.frame != 3 && Player.info.frame != 4) Player.info.frame = 3;
+                else if (Player.info.frame == 3) Player.info.frame = 4;
+                else if (Player.info.frame == 4) Player.info.frame = 3;
+                Player.info.moving = true
+            }
+        }
+        //dół
+        if (Player.keys[40] && Player.info.y < 184 - 10 && Player.checkIfCanGoVertically("move") && Player.info.jump.jumping == false) {
+            if (Player.info.y + Player.info.speed - laddersInfo[Player.info.currentLadder].y < laddersInfo[Player.info.currentLadder].height && Player.info.y + Player.info.speed - laddersInfo[Player.info.currentLadder].y >= -6) {
+                Player.info.y += Player.info.speed / 2;
+                if (Player.info.x != laddersInfo[Player.info.currentLadder].x) {
+                    Player.info.x = laddersInfo[Player.info.currentLadder].x
+                }
+                if (Player.info.frame != 6 && Player.info.frame != 7) Player.info.frame = 6;
+                else if (Player.info.frame == 6) Player.info.frame = 7;
+                else if (Player.info.frame == 7) Player.info.frame = 6;
+                Player.info.moving = true
+            }
+        }
+
+        if (!Player.info.moving) {
+            Player.info.frame = 0;
+        }
+
+        if (Player.checkIfCanGoVertically("stand") && !Player.info.moving) {
+            Player.info.frame = 5;
+        }
+
+        if (Player.info.jump.jumping) {
+            if (Player.info.jump.direction == "left") {
+                Player.info.frame = 8
+                if (Player.info.jump.yStart - Player.info.y < 11 && Player.info.jump.xStart - Player.info.x < 44 && Player.info.jump.jumpStatus == "up") {
+                    if (Player.info.jump.yStart - Player.info.y == 10) {
+                        Player.info.y = Player.info.y - 1
+                        Player.info.jump.jumpStatus = "top"
+                    } else {
+                        Player.info.y = Player.info.y - Player.info.speed / 2
+                    }
+
+                    if ((Player.info.jump.yStart - Player.info.y) % 4 == 0) {
+                        Player.info.x = Player.info.x - 1
+                    } else Player.info.x = Player.info.x - Player.info.speed
+
+                } else if (Player.info.jump.jumpStatus == "top") {
+                    Player.info.x = Player.info.x - Player.info.speed
+                    if (Player.info.jump.xStart - Player.info.x >= 30) {
+                        Player.info.jump.jumpStatus = "down"
+                    }
+                } else if (Player.info.jump.jumpStatus == "down") {
+                    if (Player.info.jump.yStart - Player.info.y == 11) {
+                        Player.info.y = Player.info.y + 1
+                    } else {
+                        Player.info.y = Player.info.y + Player.info.speed / 2
+                    }
+
+                    if ((Player.info.jump.yStart - Player.info.y) % 4 == 0) {
+                        Player.info.x = Player.info.x - 1
+                    } else Player.info.x = Player.info.x - Player.info.speed
+                }
+            } else if (Player.info.jump.direction == "right") {
+                Player.info.frame = 9
+                if (Player.info.jump.yStart - Player.info.y < 11 && Player.info.x - Player.info.jump.xStart < 44 && Player.info.jump.jumpStatus == "up") {
+                    if (Player.info.jump.yStart - Player.info.y == 10) {
+                        Player.info.y = Player.info.y - 1
+                        Player.info.jump.jumpStatus = "top"
+                    } else {
+                        Player.info.y = Player.info.y - Player.info.speed / 2
+                    }
+
+                    if ((Player.info.jump.yStart - Player.info.y) % 4 == 0) {
+                        Player.info.x = Player.info.x + 1
+                    } else Player.info.x = Player.info.x + Player.info.speed
+
+                } else if (Player.info.jump.jumpStatus == "top") {
+                    Player.info.x = Player.info.x + Player.info.speed
+                    if (Player.info.x - Player.info.jump.xStart >= 30) {
+                        Player.info.jump.jumpStatus = "down"
+                    }
+                } else if (Player.info.jump.jumpStatus == "down") {
+                    if (Player.info.jump.yStart - Player.info.y == 11) {
+                        Player.info.y = Player.info.y + 1
+                    } else {
+                        Player.info.y = Player.info.y + Player.info.speed / 2
+                    }
+
+                    if ((Player.info.jump.yStart - Player.info.y) % 4 == 0) {
+                        Player.info.x = Player.info.x + 1
+                    } else Player.info.x = Player.info.x + Player.info.speed
+                }
+            } else { console.log('error') }
+
+            if ((Player.checkIfCanGoVertically("jump") || Player.checkIfCanGoHorizontally()) && Player.info.jump.jumpStatus != "up") {
+                if (Player.info.y % 2 != 0) Player.info.y--
+                Player.info.jump.jumping = false
+                Player.info.moving = false
+            }
+        }
+    }
+
+
+    static animate() {
+        requestAnimationFrame(Player.animate);
+        Player.settings.now = Date.now();
+        Player.settings.elapsed = Player.settings.now - Player.settings.then;
+        if (Player.settings.elapsed > Player.settings.fpsInterval) {
+            Player.settings.then = Player.settings.now - (Player.settings.elapsed % Player.settings.fpsInterval);
+            Player.ctx.clearRect(0, 0, 320, 200);
+            Player.ctx.drawImage(Playfield.plansza,
+                960, 184,   // Start at 70/20 pixels from the left and the top of the image (crop),
+                320, 184,   // "Get" a `50 * 50` (w * h) area from the source image (crop),
+                0, 0,     // Place the result at 0, 0 in the canvas,
+                320, 184); // With as width / height: 100 * 100 (scale)
+            Player.ctx.drawImage(Player.playerSheet,
+                Player.frames[Player.info.frame].x, Player.frames[Player.info.frame].y,   // Start at 70/20 pixels from the left and the top of the image (crop),
+                16, 10,   // "Get" a `50 * 50` (w * h) area from the source image (crop),
+                Player.info.x, Player.info.y,     // Place the result at 0, 0 in the canvas,
+                16, 10); // With as width / height: 100 * 100 (scale)
+            Player.ctx.drawImage(Playfield.scorebar,
+                0, 0,   // Start at 70/20 pixels from the left and the top of the image (crop),
+                320, 16,   // "Get" a `50 * 50` (w * h) area from the source image (crop),
+                0, 184,     // Place the result at 0, 0 in the canvas,
+                320, 16); // With as width / height: 100 * 100 (scale)
+            Player.movePlayer();
+            //requestAnimationFrame(Player.animate);
+        }
+    }
+
+    static startAnimating(fps: number) {
+        Player.settings = {
+            fpsInterval: 1000 / fps,
+            then: Date.now(),
+            startTime: Date.now(),
+            now: 0,
+            elapsed: 0
+        }
+        Player.animate();
+    }
+
+    static checkIfCanGoVertically(type: string) {
+        let stand = false
+        let move = false
+        let jump = false
+        laddersInfo.forEach((ladder, index) => {
+            if (Player.getDistance(Player.info.x, ladder.x) <= 8 && Player.info.y - ladder.y < ladder.height && Player.info.y - ladder.y >= -6) {
+                Player.info.currentLadder = index
+                stand = true;
+                if (Player.getDistance(Player.info.x, ladder.x) <= 4) {
+                    move = true
+                }
+                if (Player.getDistance(Player.info.x, ladder.x) <= 2 && Player.info.y - ladder.y >= 0) {
+                    Player.info.x = ladder.x
+                    jump = true
+                }
+            }
+        });
+        if (type == "stand") {
+            return stand
+        } else if (type == "move") {
+            return move
+        } else if (type == "jump") {
+            return jump
+        }
+    }
+
+    static checkIfCanGoHorizontally() {
+        let x = false;
+        platformsInfo.forEach((platform, index) => {
+            if (Player.info.x - platform.x <= platform.width && Player.info.x - platform.x >= -8 && Player.info.y - platform.y <= 2 && Player.info.y - platform.y >= -10) {
+                Player.info.currentPlatform = index
+                x = true
+            }
+        })
+        return x;
+    }
+
+    // static getDistance(x1: number, y1: number, x2: number, y2: number) {
+    //     let xDistance = x2 - x1
+    //     let yDistance = y2 - y1
+    //     return Math.sqrt(Math.pow(xDistance, 2) + Math.pow(yDistance, 2));
+    // }
+
+    static getDistance(x1: number, x2: number) {
+        let xDistance = x2 - x1
+        return Math.abs(xDistance);
     }
 }
