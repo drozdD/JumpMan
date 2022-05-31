@@ -1,10 +1,12 @@
 import Playfield from "./Playfield";
 import laddersInfo from "../data/laddersInfo";
 import platformsInfo from "../data/platformsInfo";
+import fall from "./FallingAnimation"
 
 export default class Player {
+    public static animation: any;
     public playerImg: string = '../imgs/player.png';
-    public static info: { x: number, y: number, speed: number, frame: number, moving: Boolean, currentLadder: number, currentPlatform: number, jump: { jumping: boolean, xStart: number, yStart: number, direction: string, jumpStatus: string } }
+    public static info: { x: number, y: number, speed: number, frame: number, moving: Boolean, currentLadder: number, currentPlatform: number, falling: boolean, jump: { jumping: boolean, xStart: number, yStart: number, direction: string, jumpStatus: string } }
     public static settings: { fpsInterval: number, startTime: number, now: number, then: number, elapsed: number };
     public playfield = new Playfield();
     public static playerSheet = new Image()
@@ -58,10 +60,32 @@ export default class Player {
         { //skok w prawo
             x: 36,
             y: 44
+        },
+        {//spdanie dol  10
+            x: 0,
+            y: 77
+        },
+        {//spadanie prawo  11
+            x: 18,
+            y: 77
+        },
+        {//spadanie lewo  12
+            x: 54,
+            y: 77
+        },
+        {//spadanie góra  13
+            x: 36,
+            y: 77
+        },
+        { //gwiazdki 1 14
+            x: 0,
+            y: 88
+        },
+        { //gwiazdki 2 15
+            x: 18,
+            y: 88
         }
     ]
-    //public canvas = document.querySelector('canvas')
-    // public c = this.canvas.getContext('2d')
     constructor() {
         Player.info = {
             x: 152,
@@ -71,6 +95,7 @@ export default class Player {
             moving: false,
             currentLadder: -1,
             currentPlatform: -1,
+            falling: false,
             jump: {
                 jumping: false,
                 xStart: 0,
@@ -83,10 +108,10 @@ export default class Player {
         Player.ctx = canvas.getContext('2d')
         Player.playerSheet.src = this.playerImg;
         this.playfield.createNewPlayfield();
-        this.drawPlayerOnStart();
+        Player.drawPlayerOnStart();
     }
 
-    drawPlayerOnStart() {
+    static drawPlayerOnStart() {
         var xCut: number, yCut: number;
         let i = 0;
         // var canvas = document.querySelector('canvas')
@@ -143,7 +168,6 @@ export default class Player {
                 Player.info.x, Player.info.y,     // Place the result at 0, 0 in the canvas,
                 16, 10); // With as width / height: 100 * 100 (scale)
 
-
             if (i >= 9) {
                 clearInterval(animatePlayerOnStart);
                 Player.addKeyboardsEvents();
@@ -166,8 +190,21 @@ export default class Player {
     }
 
     static movePlayer() {
+        if (Player.info.falling) {
+            fall();
+            return
+        }
+        //góra skok
+        if (Player.keys[32] && Player.keys[38]) {
+            Player.info.jump.jumping = true;
+            Player.info.moving = true;
+            Player.info.jump.xStart = Player.info.x
+            Player.info.jump.yStart = Player.info.y
+            Player.info.jump.direction = "up"
+            Player.info.jump.jumpStatus = "up"
+        }
         //góra
-        if (Player.keys[38] && Player.info.y > 2 && Player.checkIfCanGoVertically("move") && Player.info.jump.jumping == false) {
+        else if (Player.keys[38] && Player.info.y > 2 && Player.checkIfCanGoVertically("move") && Player.info.jump.jumping == false) {
             if (Player.info.y - Player.info.speed - laddersInfo[Player.info.currentLadder].y < laddersInfo[Player.info.currentLadder].height && Player.info.y - Player.info.speed - laddersInfo[Player.info.currentLadder].y >= -6) {
                 Player.info.y -= Player.info.speed / 2;
                 if (Player.info.x != laddersInfo[Player.info.currentLadder].x) {
@@ -189,8 +226,8 @@ export default class Player {
             Player.info.jump.direction = "left"
             Player.info.jump.jumpStatus = "up"
         }
-        else if (Player.keys[37] && Player.info.x > 0 && Player.checkIfCanGoHorizontally() && Player.info.jump.jumping == false) {
-            if (Player.info.x - Player.info.speed >= platformsInfo[Player.info.currentPlatform].x - 8) {
+        else if (Player.keys[37] && Player.info.x > 0 && Player.info.jump.jumping == false) {
+            if (Player.checkIfCanGoHorizontally()) {
                 Player.info.x -= Player.info.speed;
                 if (platformsInfo[Player.info.currentPlatform].y - Player.info.y < 10) {
                     Player.info.y -= Player.info.speed / 2
@@ -200,6 +237,13 @@ export default class Player {
                 else if (Player.info.frame == 2) Player.info.frame = 1;
                 Player.info.moving = true
             }
+            if (Player.info.x < platformsInfo[Player.info.currentPlatform].x - 8) {
+                Player.info.x -= Player.info.speed;
+                Player.info.falling = true
+            }
+            //if (Player.info.x - Player.info.speed >= platformsInfo[Player.info.currentPlatform].x - 8) {
+
+            //}
         }
         //prawo skok
         if (Player.keys[32] && Player.keys[39]) {
@@ -211,8 +255,8 @@ export default class Player {
             Player.info.jump.jumpStatus = "up"
         }
         //prawo
-        else if (Player.keys[39] && Player.info.x < 320 - 16 && Player.checkIfCanGoHorizontally() && Player.info.jump.jumping == false) {
-            if (Player.info.x + Player.info.speed <= platformsInfo[Player.info.currentPlatform].x + platformsInfo[Player.info.currentPlatform].width - 8) {
+        else if (Player.keys[39] && Player.info.x < 320 - 16 && Player.info.jump.jumping == false) {
+            if (Player.checkIfCanGoHorizontally()) {
                 Player.info.x += Player.info.speed;
                 if (platformsInfo[Player.info.currentPlatform].y - Player.info.y < 10) {
                     Player.info.y -= Player.info.speed / 2
@@ -221,6 +265,10 @@ export default class Player {
                 else if (Player.info.frame == 3) Player.info.frame = 4;
                 else if (Player.info.frame == 4) Player.info.frame = 3;
                 Player.info.moving = true
+            }
+            if (Player.info.x >= platformsInfo[Player.info.currentPlatform].x + platformsInfo[Player.info.currentPlatform].width - 4) {
+                Player.info.x += Player.info.speed + 2;
+                Player.info.falling = true
             }
         }
         //dół
@@ -256,13 +304,16 @@ export default class Player {
                         Player.info.y = Player.info.y - Player.info.speed / 2
                     }
 
+                    // if ((Player.info.jump.yStart - Player.info.y) % 4 == 0) {
+                    //     Player.info.x = Player.info.x - Player.info.speed
+                    // } else Player.info.x = Player.info.x - 1
+
                     if ((Player.info.jump.yStart - Player.info.y) % 4 == 0) {
-                        Player.info.x = Player.info.x - 1
                     } else Player.info.x = Player.info.x - Player.info.speed
 
                 } else if (Player.info.jump.jumpStatus == "top") {
-                    Player.info.x = Player.info.x - Player.info.speed
-                    if (Player.info.jump.xStart - Player.info.x >= 30) {
+                    Player.info.x = Player.info.x - Player.info.speed / 2
+                    if (Player.info.jump.xStart - Player.info.x >= 28) {
                         Player.info.jump.jumpStatus = "down"
                     }
                 } else if (Player.info.jump.jumpStatus == "down") {
@@ -272,8 +323,11 @@ export default class Player {
                         Player.info.y = Player.info.y + Player.info.speed / 2
                     }
 
+                    // if ((Player.info.jump.yStart - Player.info.y) % 4 == 0) {
+                    //     Player.info.x = Player.info.x - Player.info.speed
+                    // } else Player.info.x = Player.info.x - 1
+
                     if ((Player.info.jump.yStart - Player.info.y) % 4 == 0) {
-                        Player.info.x = Player.info.x - 1
                     } else Player.info.x = Player.info.x - Player.info.speed
                 }
             } else if (Player.info.jump.direction == "right") {
@@ -287,12 +341,11 @@ export default class Player {
                     }
 
                     if ((Player.info.jump.yStart - Player.info.y) % 4 == 0) {
-                        Player.info.x = Player.info.x + 1
                     } else Player.info.x = Player.info.x + Player.info.speed
 
                 } else if (Player.info.jump.jumpStatus == "top") {
-                    Player.info.x = Player.info.x + Player.info.speed
-                    if (Player.info.x - Player.info.jump.xStart >= 30) {
+                    Player.info.x = Player.info.x + Player.info.speed / 2
+                    if (Player.info.x - Player.info.jump.xStart >= 28) {
                         Player.info.jump.jumpStatus = "down"
                     }
                 } else if (Player.info.jump.jumpStatus == "down") {
@@ -303,22 +356,53 @@ export default class Player {
                     }
 
                     if ((Player.info.jump.yStart - Player.info.y) % 4 == 0) {
-                        Player.info.x = Player.info.x + 1
                     } else Player.info.x = Player.info.x + Player.info.speed
+
+                }
+            } else if (Player.info.jump.direction == "up") {
+                Player.info.frame = 5
+                if (Player.info.jump.yStart - Player.info.y < 11 && Player.info.jump.jumpStatus == "up") {
+                    if (Player.info.jump.yStart - Player.info.y == 10) {
+                        Player.info.y = Player.info.y - 1
+                        Player.info.jump.jumpStatus = "hold"
+                    } else {
+                        Player.info.y = Player.info.y - Player.info.speed / 2
+                    }
+
+                } else if (Player.info.jump.jumpStatus.substring(0, 4) == "hold") {
+                    if (Player.info.jump.jumpStatus == "hold") { Player.info.jump.jumpStatus = "hold0" }
+                    else {
+                        let x = Player.info.jump.jumpStatus.substring(4, 5)
+                        let num: number = parseInt(x);
+                        num++
+                        Player.info.jump.jumpStatus = "hold" + num.toString()
+                        if (Player.info.jump.jumpStatus == "hold2") {
+                            Player.info.jump.jumpStatus = "down"
+                        }
+                    }
+                } else if (Player.info.jump.jumpStatus == "down") {
+                    if (Player.info.jump.yStart - Player.info.y == 11) {
+                        Player.info.y = Player.info.y + 1
+                    } else {
+                        Player.info.y = Player.info.y + Player.info.speed / 2
+                    }
                 }
             } else { console.log('error') }
-
             if ((Player.checkIfCanGoVertically("jump") || Player.checkIfCanGoHorizontally()) && Player.info.jump.jumpStatus != "up") {
                 if (Player.info.y % 2 != 0) Player.info.y--
                 Player.info.jump.jumping = false
                 Player.info.moving = false
+            }
+
+            if (Player.info.jump.jumpStatus != "up" && Player.info.y - Player.info.jump.yStart == 16) {
+                Player.info.falling = true
             }
         }
     }
 
 
     static animate() {
-        requestAnimationFrame(Player.animate);
+        Player.animation = requestAnimationFrame(Player.animate);
         Player.settings.now = Date.now();
         Player.settings.elapsed = Player.settings.now - Player.settings.then;
         if (Player.settings.elapsed > Player.settings.fpsInterval) {
@@ -340,7 +424,6 @@ export default class Player {
                 0, 184,     // Place the result at 0, 0 in the canvas,
                 320, 16); // With as width / height: 100 * 100 (scale)
             Player.movePlayer();
-            //requestAnimationFrame(Player.animate);
         }
     }
 
@@ -366,7 +449,7 @@ export default class Player {
                 if (Player.getDistance(Player.info.x, ladder.x) <= 4) {
                     move = true
                 }
-                if (Player.getDistance(Player.info.x, ladder.x) <= 2 && Player.info.y - ladder.y >= 0) {
+                if (Player.getDistance(Player.info.x, ladder.x) <= 2 && Player.info.y - ladder.y > 0) {
                     Player.info.x = ladder.x
                     jump = true
                 }
@@ -384,7 +467,7 @@ export default class Player {
     static checkIfCanGoHorizontally() {
         let x = false;
         platformsInfo.forEach((platform, index) => {
-            if (Player.info.x - platform.x <= platform.width && Player.info.x - platform.x >= -8 && Player.info.y - platform.y <= 2 && Player.info.y - platform.y >= -10) {
+            if (Player.info.x - platform.x < platform.width && Player.info.x - platform.x >= -8 && Player.info.y - platform.y <= 2 && Player.info.y - platform.y >= -10) {
                 Player.info.currentPlatform = index
                 x = true
             }
