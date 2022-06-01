@@ -4,6 +4,7 @@ import platformsInfo from "../data/platformsInfo";
 import fall from "./FallingAnimation"
 import pointsInfo from "../data/pointsInfo";
 import ScoreBarInfo from "./ScoreBarInfo";
+import Enemies from "./Enemies";
 
 export default class Player {
     public static animation: any;
@@ -117,11 +118,6 @@ export default class Player {
     static drawPlayerOnStart() {
         var xCut: number, yCut: number;
         let i = 0;
-        // var canvas = document.querySelector('canvas')
-        // var c = canvas.getContext('2d')
-        // var image = new Image()
-        // image.src = this.playerImg;
-        console.log('draw player')
         var animatePlayerOnStart = window.setInterval(function () {
             switch (i) {
                 case 0:
@@ -195,7 +191,6 @@ export default class Player {
 
     static movePlayer() {
         if (Player.info.falling) {
-            console.log('kuta')
             Player.scorePoint();
             fall();
             return
@@ -273,7 +268,6 @@ export default class Player {
                 Player.info.moving = true
             }
             if (Player.info.x >= platformsInfo[Player.info.currentPlatform].x + platformsInfo[Player.info.currentPlatform].width - 4) {
-                console.log("przeskakuje")
                 Player.info.x += Player.info.speed + 2;
                 Player.info.falling = true
             }
@@ -405,7 +399,8 @@ export default class Player {
                 Player.info.falling = true
             }
         }
-
+        Enemies.move()
+        Player.checkHitByEnemy();
         Player.scorePoint();
     }
 
@@ -427,6 +422,13 @@ export default class Player {
                 Player.ctx.fillStyle = '#191D19';
                 Player.ctx.fillRect(pointsInfo[pointIndex].x, pointsInfo[pointIndex].y, 8, 6);
                 Player.ctx.stroke();
+            })
+            Enemies.enemies.forEach(enemy => {
+                Player.ctx.drawImage(Playfield.enemiesImg,
+                    enemy.frames[enemy.frame].x, enemy.frames[enemy.frame].y,   // Start at 70/20 pixels from the left and the top of the image (crop),
+                    16, 8,   // "Get" a `50 * 50` (w * h) area from the source image (crop),
+                    enemy.x, enemy.y,     // Place the result at 0, 0 in the canvas,
+                    16, 8); // With as width / height: 100 * 100 (scale)
             })
             Player.ctx.drawImage(Player.playerSheet,
                 Player.frames[Player.info.frame].x, Player.frames[Player.info.frame].y,   // Start at 70/20 pixels from the left and the top of the image (crop),
@@ -487,8 +489,6 @@ export default class Player {
                 x = true
             }
         })
-        console.log("x", Player.info.x)
-        console.log("y", Player.info.y)
         return x;
     }
 
@@ -500,6 +500,14 @@ export default class Player {
                     if (num == index) checkIfPointIsAlreadyInArray = true
                 })
                 if (!checkIfPointIsAlreadyInArray) ScoreBarInfo.scoredPoints.push(index)
+            }
+        })
+    }
+
+    static checkHitByEnemy() {
+        Enemies.enemies.forEach(enemy => {
+            if (enemy.x - Player.info.x <= 8 && enemy.x - Player.info.x >= -4 && enemy.y - Player.info.y < 8 && enemy.y - Player.info.y > -8) {
+                Player.info.falling = true
             }
         })
     }
