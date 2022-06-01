@@ -75,8 +75,11 @@ class FallingAnimation {
             else if (Player.info.frame == 15) Player.info.frame = 14
             FallingAnimation.doneLvl++
             if (FallingAnimation.doneLvl == 40) {
+                FallingAnimation.doneLvl = 0
+                FallingAnimation.run = false
                 FallingAnimation.done = false;
-                FallingAnimation.animationDone = true
+                FallingAnimation.bongStatus = "none"
+                FallingAnimation.animationDone = false
                 Player.info.falling = false
                 window.cancelAnimationFrame(Player.animation);
                 Player.animation = undefined

@@ -2,6 +2,8 @@ import Playfield from "./Playfield";
 import laddersInfo from "../data/laddersInfo";
 import platformsInfo from "../data/platformsInfo";
 import fall from "./FallingAnimation"
+import pointsInfo from "../data/pointsInfo";
+import ScoreBarInfo from "./ScoreBarInfo";
 
 export default class Player {
     public static animation: any;
@@ -11,6 +13,7 @@ export default class Player {
     public playfield = new Playfield();
     public static playerSheet = new Image()
     public static ctx: any;
+    public static canvas = document.querySelector('canvas');
     public static keys: Array<Boolean> = [];
     public static frames = [
         {
@@ -104,8 +107,8 @@ export default class Player {
                 jumpStatus: "none"
             }
         }
-        var canvas = document.querySelector('canvas')
-        Player.ctx = canvas.getContext('2d')
+        //var canvas = document.querySelector('canvas')
+        Player.ctx = Player.canvas.getContext('2d')
         Player.playerSheet.src = this.playerImg;
         this.playfield.createNewPlayfield();
         Player.drawPlayerOnStart();
@@ -118,6 +121,7 @@ export default class Player {
         // var c = canvas.getContext('2d')
         // var image = new Image()
         // image.src = this.playerImg;
+        console.log('draw player')
         var animatePlayerOnStart = window.setInterval(function () {
             switch (i) {
                 case 0:
@@ -191,11 +195,13 @@ export default class Player {
 
     static movePlayer() {
         if (Player.info.falling) {
+            console.log('kuta')
+            Player.scorePoint();
             fall();
             return
         }
         //góra skok
-        if (Player.keys[32] && Player.keys[38]) {
+        if (Player.keys[32] && Player.keys[38] && Player.info.jump.jumping == false) {
             Player.info.jump.jumping = true;
             Player.info.moving = true;
             Player.info.jump.xStart = Player.info.x
@@ -218,7 +224,7 @@ export default class Player {
             }
         }
         //lewo
-        if (Player.keys[32] && Player.keys[37]) {
+        if (Player.keys[32] && Player.keys[37] && Player.info.jump.jumping == false) {
             Player.info.jump.jumping = true;
             Player.info.moving = true;
             Player.info.jump.xStart = Player.info.x
@@ -246,7 +252,7 @@ export default class Player {
             //}
         }
         //prawo skok
-        if (Player.keys[32] && Player.keys[39]) {
+        if (Player.keys[32] && Player.keys[39] && Player.info.jump.jumping == false) {
             Player.info.jump.jumping = true;
             Player.info.moving = true;
             Player.info.jump.xStart = Player.info.x
@@ -267,6 +273,7 @@ export default class Player {
                 Player.info.moving = true
             }
             if (Player.info.x >= platformsInfo[Player.info.currentPlatform].x + platformsInfo[Player.info.currentPlatform].width - 4) {
+                console.log("przeskakuje")
                 Player.info.x += Player.info.speed + 2;
                 Player.info.falling = true
             }
@@ -398,6 +405,8 @@ export default class Player {
                 Player.info.falling = true
             }
         }
+
+        Player.scorePoint();
     }
 
 
@@ -413,6 +422,12 @@ export default class Player {
                 320, 184,   // "Get" a `50 * 50` (w * h) area from the source image (crop),
                 0, 0,     // Place the result at 0, 0 in the canvas,
                 320, 184); // With as width / height: 100 * 100 (scale)
+            ScoreBarInfo.scoredPoints.forEach((pointIndex) => {
+                Player.ctx.beginPath();
+                Player.ctx.fillStyle = '#191D19';
+                Player.ctx.fillRect(pointsInfo[pointIndex].x, pointsInfo[pointIndex].y, 8, 6);
+                Player.ctx.stroke();
+            })
             Player.ctx.drawImage(Player.playerSheet,
                 Player.frames[Player.info.frame].x, Player.frames[Player.info.frame].y,   // Start at 70/20 pixels from the left and the top of the image (crop),
                 16, 10,   // "Get" a `50 * 50` (w * h) area from the source image (crop),
@@ -472,7 +487,21 @@ export default class Player {
                 x = true
             }
         })
+        console.log("x", Player.info.x)
+        console.log("y", Player.info.y)
         return x;
+    }
+
+    static scorePoint() {
+        pointsInfo.forEach((point, index) => {
+            if (point.x - Player.info.x <= 8 && point.x - Player.info.x >= -4 && point.y - Player.info.y < 10 && point.y - Player.info.y > -6) {
+                let checkIfPointIsAlreadyInArray = false
+                ScoreBarInfo.scoredPoints.forEach(num => {
+                    if (num == index) checkIfPointIsAlreadyInArray = true
+                })
+                if (!checkIfPointIsAlreadyInArray) ScoreBarInfo.scoredPoints.push(index)
+            }
+        })
     }
 
     // static getDistance(x1: number, y1: number, x2: number, y2: number) {
