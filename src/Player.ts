@@ -9,7 +9,7 @@ import Enemies from "./Enemies";
 export default class Player {
     public static animation: any;
     public playerImg: string = '../imgs/player.png';
-    public static info: { x: number, y: number, speed: number, frame: number, moving: Boolean, currentLadder: number, currentPlatform: number, falling: boolean, jump: { jumping: boolean, xStart: number, yStart: number, direction: string, jumpStatus: string } }
+    public static info: { x: number, y: number, speed: number, immortal: number, frame: number, moving: Boolean, currentLadder: number, currentPlatform: number, falling: boolean, jump: { jumping: boolean, xStart: number, yStart: number, direction: string, jumpStatus: string } }
     public static settings: { fpsInterval: number, startTime: number, now: number, then: number, elapsed: number };
     public playfield = new Playfield();
     public static playerSheet = new Image()
@@ -95,6 +95,7 @@ export default class Player {
             x: 152,
             y: 70,
             speed: 4,
+            immortal: 20,
             frame: 0,
             moving: false,
             currentLadder: -1,
@@ -171,7 +172,7 @@ export default class Player {
             if (i >= 9) {
                 clearInterval(animatePlayerOnStart);
                 Player.addKeyboardsEvents();
-                Player.startAnimating(13)
+                Player.startAnimating(20)
             }
             i++
         }, 70)
@@ -400,8 +401,9 @@ export default class Player {
             }
         }
         Enemies.move()
-        Player.checkHitByEnemy();
+        if (Player.info.immortal <= 0) Player.checkHitByEnemy();
         Player.scorePoint();
+        Player.info.immortal--
     }
 
 

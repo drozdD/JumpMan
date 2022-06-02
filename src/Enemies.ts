@@ -37,7 +37,6 @@ export default class Enemies {
                         x: 20,
                         y: 115
                     },
-
                 ]
             },
             {
@@ -138,24 +137,62 @@ export default class Enemies {
                         y: 115
                     },
                 ]
+            },
+            {
+                color: "red",
+                x: 8,
+                y: 8,
+                movingDirection: "down",
+                frame: 0,
+                frames: [
+                    {   //up 1
+                        x: 2,
+                        y: 97
+                    },
+                    {   //up 2
+                        x: 20,
+                        y: 97
+                    },
+                    {   //left 1
+                        x: 39,
+                        y: 97
+                    },
+                    {   //left 2
+                        x: 57,
+                        y: 97
+                    },
+                    {   //right 1
+                        x: 2,
+                        y: 115
+                    },
+                    {   //right 2
+                        x: 20,
+                        y: 115
+                    },
+
+                ]
             }
         ]
     }
 
     static move() {
-        for (var i = 0; i < 4; i++) {
+        for (var i = 0; i < Enemies.enemies.length; i++) {
             if (Enemies.enemies[i].movingDirection == "right") {
                 if (Enemies.checkIfCanGoRight(i) == false) {
                     let canGo = []
-                    if (Enemies.checkIfCanGoLeft(i)) canGo.push('left')
+
                     if (Enemies.checkIfCanGoDown(i)) canGo.push('down')
                     if (Enemies.checkIfCanGoUp(i)) canGo.push('up')
+                    if (canGo.length == 0) {
+                        if (Enemies.checkIfCanGoLeft(i)) canGo.push('left')
+                    }
                     let x = Enemies.randomNumberFrom0toX(canGo.length - 1)
                     Enemies.enemies[i].movingDirection = canGo[x]
                 } else {
                     let canGo = []
                     if (Enemies.checkIfCanGoDown(i)) canGo.push('down')
                     if (Enemies.checkIfCanGoUp(i)) canGo.push('up')
+                    if (Enemies.checkIfCanGoRight(i)) canGo.push('right')
                     if (canGo.length > 0) {
                         let x = Enemies.randomNumberFrom0toX(canGo.length - 1)
                         Enemies.enemies[i].movingDirection = canGo[x]
@@ -164,15 +201,19 @@ export default class Enemies {
             } else if (Enemies.enemies[i].movingDirection == "left") {
                 if (Enemies.checkIfCanGoLeft(i) == false) {
                     let canGo = []
-                    if (Enemies.checkIfCanGoRight(i)) canGo.push('right')
+
                     if (Enemies.checkIfCanGoDown(i)) canGo.push('down')
                     if (Enemies.checkIfCanGoUp(i)) canGo.push('up')
+                    if (canGo.length == 0) {
+                        if (Enemies.checkIfCanGoRight(i)) canGo.push('right')
+                    }
                     let x = Enemies.randomNumberFrom0toX(canGo.length - 1)
                     Enemies.enemies[i].movingDirection = canGo[x]
                 } else {
                     let canGo = []
                     if (Enemies.checkIfCanGoDown(i)) canGo.push('down')
                     if (Enemies.checkIfCanGoUp(i)) canGo.push('up')
+                    if (Enemies.checkIfCanGoLeft(i)) canGo.push('left')
                     if (canGo.length > 0) {
                         let x = Enemies.randomNumberFrom0toX(canGo.length - 1)
                         Enemies.enemies[i].movingDirection = canGo[x]
@@ -190,6 +231,7 @@ export default class Enemies {
                     let canGo = []
                     if (Enemies.checkIfCanGoLeft(i)) canGo.push('left')
                     if (Enemies.checkIfCanGoRight(i)) canGo.push('right')
+                    if (Enemies.checkIfCanGoDown(i)) canGo.push("down")
                     if (canGo.length > 0) {
                         let x = Enemies.randomNumberFrom0toX(canGo.length - 1)
                         Enemies.enemies[i].movingDirection = canGo[x]
@@ -207,6 +249,7 @@ export default class Enemies {
                     let canGo = []
                     if (Enemies.checkIfCanGoLeft(i)) canGo.push('left')
                     if (Enemies.checkIfCanGoRight(i)) canGo.push('right')
+                    if (Enemies.checkIfCanGoUp(i)) canGo.push("up")
                     if (canGo.length > 0) {
                         let x = Enemies.randomNumberFrom0toX(canGo.length - 1)
                         Enemies.enemies[i].movingDirection = canGo[x]
