@@ -1,4 +1,5 @@
 import Player from "./Player"
+import ScoreBarInfo from "./ScoreBarInfo";
 
 class FallingAnimation {
     static run: boolean = false;
@@ -20,6 +21,7 @@ class FallingAnimation {
         if (Player.checkIfCanGoHorizontally() && FallingAnimation.bongStatus == "none" && !FallingAnimation.done) {
             FallingAnimation.yOnBongStart = Player.info.y
             FallingAnimation.bongStatus = "up";
+            new Audio('../mp3/bong.mp3').play()
             let random = Math.random()
             if (random <= 0.33) {
                 FallingAnimation.bongDirection = "right"
@@ -65,22 +67,35 @@ class FallingAnimation {
         }
 
         if (FallingAnimation.bongStatus == "none" && !FallingAnimation.done) Player.info.y += Player.info.speed
-        if (Player.info.y >= 170) {
+        if (Player.info.y >= 170 && FallingAnimation.done == false) {
             Player.info.y = 172
             FallingAnimation.done = true
+            if (!Player.fallAudio.paused) Player.fallAudio.pause()
+            new Audio('../mp3/death.mp3').play()
+            console.log('ge')
         }
         if (FallingAnimation.done) {
             if (Player.info.frame != 14 && Player.info.frame != 15) Player.info.frame = 14
             else if (Player.info.frame == 14) Player.info.frame = 15
             else if (Player.info.frame == 15) Player.info.frame = 14
             FallingAnimation.doneLvl++
-            if (FallingAnimation.doneLvl == 40) {
+            if (FallingAnimation.doneLvl == 100) {
                 FallingAnimation.doneLvl = 0
                 FallingAnimation.run = false
                 FallingAnimation.done = false;
                 FallingAnimation.bongStatus = "none"
                 FallingAnimation.animationDone = false
                 Player.info.falling = false
+                ScoreBarInfo.lives -= 1
+                if (ScoreBarInfo.lives <= 0) {
+                    if (confirm("Przegrałeś, punkty: " + ScoreBarInfo.pointsValue + "\nChcesz zagrać jeszcze raz?") == true) {
+                        location.reload();
+                    } else {
+                        clearInterval(Player.countBonusInterval)
+                        window.cancelAnimationFrame(Player.animation)
+                        return
+                    }
+                }
                 window.cancelAnimationFrame(Player.animation);
                 Player.animation = undefined
                 new Player();

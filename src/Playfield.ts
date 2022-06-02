@@ -55,6 +55,7 @@ export default class Playfield {
                 320, 16,   // "Get" a `50 * 50` (w * h) area from the source image (crop),
                 0, 184,     // Place the result at 0, 0 in the canvas,
                 320, 16); // With as width / height: 100 * 100 (scale)
+            ScoreBarInfo.updateScoreBar();
         }
 
         console.log('New Playfield')

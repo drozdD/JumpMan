@@ -8,7 +8,10 @@ import Enemies from "./Enemies";
 
 export default class Player {
     public static animation: any;
+    public static walkingAudio = new Audio('../mp3/step.mp3');
+    public static fallAudio = new Audio('../mp3/fall.mp3');
     public playerImg: string = '../imgs/player.png';
+    public static pauseBonusInterval = false;
     public static info: { x: number, y: number, speed: number, immortal: number, frame: number, moving: Boolean, currentLadder: number, currentPlatform: number, falling: boolean, jump: { jumping: boolean, xStart: number, yStart: number, direction: string, jumpStatus: string } }
     public static settings: { fpsInterval: number, startTime: number, now: number, then: number, elapsed: number };
     public playfield = new Playfield();
@@ -16,6 +19,7 @@ export default class Player {
     public static ctx: any;
     public static canvas = document.querySelector('canvas');
     public static keys: Array<Boolean> = [];
+    public static countBonusInterval: any;
     public static frames = [
         {
             //na wprost
@@ -119,6 +123,7 @@ export default class Player {
     static drawPlayerOnStart() {
         var xCut: number, yCut: number;
         let i = 0;
+        new Audio('../mp3/start.mp3').play()
         var animatePlayerOnStart = window.setInterval(function () {
             switch (i) {
                 case 0:
@@ -173,6 +178,7 @@ export default class Player {
                 clearInterval(animatePlayerOnStart);
                 Player.addKeyboardsEvents();
                 Player.startAnimating(20)
+                Player.pauseBonusInterval = false;
             }
             i++
         }, 70)
@@ -192,12 +198,14 @@ export default class Player {
 
     static movePlayer() {
         if (Player.info.falling) {
+            Player.pauseBonusInterval = true;
             Player.scorePoint();
             fall();
             return
         }
         //góra skok
         if (Player.keys[32] && Player.keys[38] && Player.info.jump.jumping == false) {
+            new Audio('../mp3/jump.mp3').play()
             Player.info.jump.jumping = true;
             Player.info.moving = true;
             Player.info.jump.xStart = Player.info.x
@@ -217,10 +225,12 @@ export default class Player {
                 else if (Player.info.frame == 6) Player.info.frame = 7;
                 else if (Player.info.frame == 7) Player.info.frame = 6;
                 Player.info.moving = true
+                Player.walkingAudio.play()
             }
         }
         //lewo
         if (Player.keys[32] && Player.keys[37] && Player.info.jump.jumping == false) {
+            new Audio('../mp3/jump.mp3').play()
             Player.info.jump.jumping = true;
             Player.info.moving = true;
             Player.info.jump.xStart = Player.info.x
@@ -228,7 +238,7 @@ export default class Player {
             Player.info.jump.direction = "left"
             Player.info.jump.jumpStatus = "up"
         }
-        else if (Player.keys[37] && Player.info.x > 0 && Player.info.jump.jumping == false) {
+        else if (Player.keys[37] && Player.info.jump.jumping == false) {
             if (Player.checkIfCanGoHorizontally()) {
                 Player.info.x -= Player.info.speed;
                 if (platformsInfo[Player.info.currentPlatform].y - Player.info.y < 10) {
@@ -238,17 +248,19 @@ export default class Player {
                 else if (Player.info.frame == 1) Player.info.frame = 2;
                 else if (Player.info.frame == 2) Player.info.frame = 1;
                 Player.info.moving = true
+                Player.walkingAudio.play()
             }
             if (Player.info.x < platformsInfo[Player.info.currentPlatform].x - 8) {
                 Player.info.x -= Player.info.speed;
                 Player.info.falling = true
+                Player.fallAudio.currentTime = 0;
+                Player.fallAudio.play()
             }
-            //if (Player.info.x - Player.info.speed >= platformsInfo[Player.info.currentPlatform].x - 8) {
 
-            //}
         }
         //prawo skok
         if (Player.keys[32] && Player.keys[39] && Player.info.jump.jumping == false) {
+            new Audio('../mp3/jump.mp3').play()
             Player.info.jump.jumping = true;
             Player.info.moving = true;
             Player.info.jump.xStart = Player.info.x
@@ -267,10 +279,13 @@ export default class Player {
                 else if (Player.info.frame == 3) Player.info.frame = 4;
                 else if (Player.info.frame == 4) Player.info.frame = 3;
                 Player.info.moving = true
+                Player.walkingAudio.play()
             }
             if (Player.info.x >= platformsInfo[Player.info.currentPlatform].x + platformsInfo[Player.info.currentPlatform].width - 4) {
                 Player.info.x += Player.info.speed + 2;
                 Player.info.falling = true
+                Player.fallAudio.currentTime = 0;
+                Player.fallAudio.play()
             }
         }
         //dół
@@ -284,6 +299,7 @@ export default class Player {
                 else if (Player.info.frame == 6) Player.info.frame = 7;
                 else if (Player.info.frame == 7) Player.info.frame = 6;
                 Player.info.moving = true
+                Player.walkingAudio.play()
             }
         }
 
@@ -398,6 +414,8 @@ export default class Player {
 
             if (Player.info.jump.jumpStatus != "up" && Player.info.y - Player.info.jump.yStart == 16) {
                 Player.info.falling = true
+                Player.fallAudio.currentTime = 0;
+                Player.fallAudio.play()
             }
         }
         Enemies.move()
@@ -442,7 +460,18 @@ export default class Player {
                 320, 16,   // "Get" a `50 * 50` (w * h) area from the source image (crop),
                 0, 184,     // Place the result at 0, 0 in the canvas,
                 320, 16); // With as width / height: 100 * 100 (scale)
+            ScoreBarInfo.updateScoreBar();
             Player.movePlayer();
+            if (ScoreBarInfo.scoredPoints.length == 16) {
+                let allPoints = ScoreBarInfo.pointsValue + ScoreBarInfo.bonus
+                if (confirm("Wygrałeś!, punkty: \n" + ScoreBarInfo.pointsValue + " (zebrane) \n" + ScoreBarInfo.bonus + " (bonus)\nRazem: " + allPoints + "\nChcesz zagrać jeszcze raz?") == true) {
+                    location.reload();
+                } else {
+                    clearInterval(Player.countBonusInterval)
+                    window.cancelAnimationFrame(Player.animation)
+                    return
+                }
+            }
         }
     }
 
@@ -501,7 +530,11 @@ export default class Player {
                 ScoreBarInfo.scoredPoints.forEach(num => {
                     if (num == index) checkIfPointIsAlreadyInArray = true
                 })
-                if (!checkIfPointIsAlreadyInArray) ScoreBarInfo.scoredPoints.push(index)
+                if (!checkIfPointIsAlreadyInArray) {
+                    ScoreBarInfo.scoredPoints.push(index)
+                    ScoreBarInfo.pointsValue += 100
+                    new Audio('../mp3/point.mp3').play()
+                }
             }
         })
     }
@@ -510,6 +543,8 @@ export default class Player {
         Enemies.enemies.forEach(enemy => {
             if (enemy.x - Player.info.x <= 8 && enemy.x - Player.info.x >= -4 && enemy.y - Player.info.y < 8 && enemy.y - Player.info.y > -8) {
                 Player.info.falling = true
+                Player.fallAudio.currentTime = 0;
+                Player.fallAudio.play()
             }
         })
     }
