@@ -87,7 +87,8 @@ class FallingAnimation {
                 FallingAnimation.animationDone = false
                 Player.info.falling = false
                 ScoreBarInfo.lives -= 1
-                if (ScoreBarInfo.lives <= 0) {
+                if (ScoreBarInfo.lives < 0) {
+
                     if (confirm("Przegrałeś, punkty: " + ScoreBarInfo.pointsValue + "\nChcesz zagrać jeszcze raz?") == true) {
                         location.reload();
                     } else {
