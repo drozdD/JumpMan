@@ -88,7 +88,7 @@ class FallingAnimation {
                 Player.info.falling = false
                 ScoreBarInfo.lives -= 1
                 if (ScoreBarInfo.lives <= 0) {
-                    if (confirm("Przegrałeś, punkty: " + ScoreBarInfo.pointsValue + "\nChcesz zagrać jeszcze raz?") == true) {
+                    if (confirm("You lost, points: " + ScoreBarInfo.pointsValue + "\nWant to play again?") == true) {
                         location.reload();
                     } else {
                         clearInterval(Player.countBonusInterval)
