@@ -269,7 +269,7 @@ export default class Player {
             Player.info.jump.jumpStatus = "up"
         }
         //prawo
-        else if (Player.keys[39] && Player.info.x < 320 - 16 && Player.info.jump.jumping == false) {
+        else if (Player.keys[39] && Player.info.jump.jumping == false) {
             if (Player.checkIfCanGoHorizontally()) {
                 Player.info.x += Player.info.speed;
                 if (platformsInfo[Player.info.currentPlatform].y - Player.info.y < 10) {
